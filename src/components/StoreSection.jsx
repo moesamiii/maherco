@@ -2,49 +2,12 @@ import { useState } from "react";
 
 const categories = [
   { id: "All", label: "الكل" },
-  { id: "PCs", label: "أجهزة PC" },
-  { id: "Consoles", label: "كونسولات" },
   { id: "Phones", label: "جوالات" },
-  { id: "Games", label: "ألعاب" },
-  { id: "Accessories", label: "إكسسوارات" },
+  { id: "Consoles", label: "كونسولات" },
+  { id: "PCs", label: "أجهزة PC" },
 ];
 
 const products = [
-  {
-    nameAr: "جهاز الغيمينغ – Beast Mode",
-    category: "PCs",
-    emoji: "🖥️",
-    specs: "RTX 4070 • 32GB RAM • 1TB NVMe",
-    highlight: "الأكثر طلباً",
-  },
-  {
-    nameAr: "جهاز PC بسعر مناسب",
-    category: "PCs",
-    emoji: "💻",
-    specs: "RTX 3060 • 16GB RAM • 512GB",
-    highlight: "اقتصادي",
-  },
-  {
-    nameAr: "بلايستيشن 5 – نسخة الديسك",
-    category: "Consoles",
-    emoji: "🎮",
-    specs: "Disc Edition • 825GB SSD • 4K",
-    highlight: null,
-  },
-  {
-    nameAr: "بلايستيشن 5 – نسخة ديجيتال",
-    category: "Consoles",
-    emoji: "🎮",
-    specs: "Digital Edition • 825GB SSD • 4K",
-    highlight: null,
-  },
-  {
-    nameAr: "بلايستيشن 5 Slim",
-    category: "Consoles",
-    emoji: "🕹️",
-    specs: "Slim Disc • 1TB SSD • Ultra HD",
-    highlight: "جديد",
-  },
   {
     nameAr: "آيفون 16 Pro Max",
     category: "Phones",
@@ -53,59 +16,26 @@ const products = [
     highlight: "الأحدث",
   },
   {
-    nameAr: "آيفون 16 Pro",
-    category: "Phones",
-    emoji: "📱",
-    specs: "128GB • Titanium • A18 Pro",
-    highlight: null,
-  },
-  {
-    nameAr: "آيفون 15",
-    category: "Phones",
-    emoji: "📱",
-    specs: "128GB • Pink / Black • A16 Bionic",
-    highlight: null,
-  },
-  {
-    nameAr: "لعبة CS2 كاملة",
-    category: "Games",
-    emoji: "🔫",
-    specs: "PC Digital Download",
-    highlight: null,
-  },
-  {
-    nameAr: "ماوس Gaming احترافي",
-    category: "Accessories",
-    emoji: "🖱️",
-    specs: "25K DPI • Wireless • RGB",
+    nameAr: "بلايستيشن 5 Slim",
+    category: "Consoles",
+    emoji: "🎮",
+    specs: "Slim Disc • 1TB SSD • Ultra HD",
     highlight: "جديد",
   },
   {
-    nameAr: "كيبورد ميكانيكي",
-    category: "Accessories",
-    emoji: "⌨️",
-    specs: "TKL • Red Switches • RGB",
-    highlight: null,
+    nameAr: "جهاز الغيمينغ – Beast Mode",
+    category: "PCs",
+    emoji: "🖥️",
+    specs: "RTX 4070 • 32GB RAM • 1TB NVMe",
+    highlight: "الأكثر طلباً",
   },
 ];
 
 const perks = [
-  {
-    icon: "⚡",
-    title: "توصيل سريع",
-    desc: "نوصلك المنتج بأسرع وقت ممكن لأي مكان",
-  },
+  { icon: "⚡", title: "توصيل سريع", desc: "نوصلك المنتج بأسرع وقت ممكن" },
   { icon: "🛡️", title: "ضمان أصلي", desc: "كل منتج مضمون 100% من المصدر" },
-  {
-    icon: "🎮",
-    title: "اختيار ماهركو",
-    desc: "كل منتج اختاره ماهركو بنفسه للمجتمع",
-  },
-  {
-    icon: "💰",
-    title: "أفضل الأسعار",
-    desc: "أسعار تنافسية خصيصاً لجمهور ماهركو",
-  },
+  { icon: "🎮", title: "اختيار ماهركو", desc: "اختاره ماهركو بنفسه للمجتمع" },
+  { icon: "💰", title: "أفضل الأسعار", desc: "أسعار حصرية لجمهور ماهركو" },
 ];
 
 export default function StoreSection() {
@@ -120,94 +50,215 @@ export default function StoreSection() {
   return (
     <section
       dir="rtl"
-      className="relative w-full overflow-hidden"
       style={{
         background: "#050505",
         borderTop: "1px solid rgba(0,255,102,0.15)",
-        fontFamily: "'Cairo', 'Tajawal', sans-serif",
+        fontFamily: "'Cairo','Tajawal',sans-serif",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       <link
-        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap"
         rel="stylesheet"
       />
 
       <style>{`
-        @keyframes floatUp {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+        @keyframes floatUp { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+        @keyframes glowPulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+        .store-perk-icon { animation: floatUp 3s ease-in-out infinite; }
+        .store-scan { animation: scanline 5s linear infinite; }
+        .store-glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
+        .store-product-card { animation: fadeInUp 0.45s ease forwards; opacity: 0; }
+
+        .store-cat-btn:hover { color: #00FF66 !important; border-color: rgba(0,255,102,0.4) !important; }
+
+        /* ── PERKS: 4 col desktop, 2 col mobile ── */
+        .store-perks-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          margin-bottom: 56px;
         }
-        @keyframes scanline {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
+
+        /* ── PRODUCTS: 3 col desktop ── */
+        .store-products-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          margin-bottom: 80px;
         }
-        @keyframes glowPulse {
-          0%, 100% { opacity: 0.4; }
-          50% { opacity: 1; }
+
+        /* ── STATS: 4 col desktop ── */
+        .store-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          max-width: 700px;
+          margin: 0 auto;
         }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to { opacity: 1; transform: translateY(0); }
+
+        .store-cats-row {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          margin-bottom: 36px;
         }
-        .product-card {
-          animation: fadeInUp 0.45s ease forwards;
-          opacity: 0;
+
+        /* ── TABLET ── */
+        @media (max-width: 900px) {
+          .store-perks-grid { grid-template-columns: repeat(2, 1fr); }
+          .store-products-grid { grid-template-columns: repeat(2, 1fr); }
+          .store-stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        .perk-icon { animation: floatUp 3s ease-in-out infinite; }
-        .scan { animation: scanline 5s linear infinite; }
-        .glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
-        .cat-btn:hover {
-          color: #00FF66 !important;
-          border-color: rgba(0,255,102,0.4) !important;
+
+        /* ── MOBILE ── */
+        @media (max-width: 580px) {
+          .store-section-inner { padding: 48px 16px 56px !important; }
+          .store-header { margin-bottom: 36px !important; }
+          .store-title { font-size: clamp(2rem, 10vw, 2.8rem) !important; }
+          .store-subtitle { font-size: 13px !important; }
+
+          /* perks: horizontal scroll */
+          .store-perks-grid {
+            grid-template-columns: unset;
+            display: flex;
+            overflow-x: auto;
+            overflow-y: visible;
+            gap: 12px;
+            margin-bottom: 36px;
+            padding-bottom: 12px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .store-perks-grid::-webkit-scrollbar { display: none; }
+          .store-perk-card {
+            min-width: 160px !important;
+            scroll-snap-align: start;
+            flex-shrink: 0;
+          }
+
+          /* category pills: horizontal scroll */
+          .store-cats-row {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            justify-content: flex-start;
+            padding: 0 0 8px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+          }
+          .store-cats-row::-webkit-scrollbar { display: none; }
+          .store-cat-btn { flex-shrink: 0; white-space: nowrap; }
+
+          /* products: horizontal scroll */
+          .store-products-grid {
+            grid-template-columns: unset;
+            display: flex;
+            overflow-x: auto;
+            overflow-y: visible;
+            gap: 14px;
+            margin-bottom: 48px;
+            padding-bottom: 12px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .store-products-grid::-webkit-scrollbar { display: none; }
+          .store-product-card {
+            min-width: 220px !important;
+            width: 220px !important;
+            scroll-snap-align: start;
+            flex-shrink: 0;
+          }
+
+          /* vision box */
+          .store-vision-inner { padding: 32px 20px !important; }
+          .store-vision-title { font-size: 1.3rem !important; }
+          .store-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 360px) {
+          .store-product-card { min-width: 190px !important; width: 190px !important; }
+          .store-perk-card { min-width: 140px !important; }
         }
       `}</style>
 
-      {/* Background grid */}
+      {/* BG grid */}
       <div
-        className="absolute inset-0 pointer-events-none"
         style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
           backgroundImage:
-            "linear-gradient(rgba(0,255,102,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.025) 1px, transparent 1px)",
+            "linear-gradient(rgba(0,255,102,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,102,0.025) 1px,transparent 1px)",
           backgroundSize: "50px 50px",
         }}
       />
 
       {/* Scanline */}
       <div
-        className="scan absolute inset-x-0 pointer-events-none"
+        className="store-scan"
         style={{
+          position: "absolute",
+          insetInline: 0,
           height: "2px",
           background:
-            "linear-gradient(90deg, transparent, rgba(0,255,102,0.08), transparent)",
+            "linear-gradient(90deg,transparent,rgba(0,255,102,0.08),transparent)",
           zIndex: 0,
         }}
       />
 
       {/* Top glow */}
       <div
-        className="absolute top-0 left-0 right-0 pointer-events-none"
         style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          pointerEvents: "none",
           height: "320px",
           background:
-            "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,255,102,0.07) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 50% at 50% 0%,rgba(0,255,102,0.07) 0%,transparent 70%)",
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-24">
-        {/* ─── HERO HEADER ─── */}
-        <div className="text-center mb-16">
+      <div
+        className="store-section-inner"
+        style={{
+          position: "relative",
+          zIndex: 10,
+          maxWidth: "1100px",
+          margin: "0 auto",
+          padding: "96px 24px",
+        }}
+      >
+        {/* Header */}
+        <div
+          className="store-header"
+          style={{ textAlign: "center", marginBottom: "64px" }}
+        >
           <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 20px",
+              borderRadius: "100px",
               background: "rgba(0,255,102,0.06)",
               border: "1px solid rgba(0,255,102,0.2)",
+              marginBottom: 20,
             }}
           >
             <span
-              className="glow-pulse"
+              className="store-glow-pulse"
               style={{
-                width: "7px",
-                height: "7px",
+                width: 7,
+                height: 7,
                 borderRadius: "50%",
                 background: "#00FF66",
                 display: "inline-block",
@@ -216,7 +267,7 @@ export default function StoreSection() {
             />
             <span
               style={{
-                fontSize: "11px",
+                fontSize: 11,
                 letterSpacing: "0.25em",
                 color: "rgba(0,255,102,0.7)",
                 fontWeight: 700,
@@ -228,20 +279,21 @@ export default function StoreSection() {
           </div>
 
           <h2
+            className="store-title"
             style={{
-              fontSize: "clamp(2.8rem, 6vw, 5rem)",
+              fontSize: "clamp(2.8rem,6vw,5rem)",
               fontWeight: 900,
               lineHeight: 1.1,
               marginBottom: "1rem",
-              fontFamily: "'Cairo', sans-serif",
+              fontFamily: "'Cairo',sans-serif",
             }}
           >
-            <span style={{ color: "#ffffff" }}>متجر </span>
+            <span style={{ color: "#fff" }}>متجر </span>
             <span
               style={{
                 color: "#00FF66",
                 textShadow:
-                  "0 0 40px rgba(0,255,102,0.5), 0 0 80px rgba(0,255,102,0.2)",
+                  "0 0 40px rgba(0,255,102,0.5),0 0 80px rgba(0,255,102,0.2)",
               }}
             >
               ماهركو
@@ -249,48 +301,50 @@ export default function StoreSection() {
           </h2>
 
           <p
+            className="store-subtitle"
             style={{
               color: "rgba(255,255,255,0.35)",
-              fontSize: "15px",
-              maxWidth: "520px",
-              margin: "0 auto 1.5rem",
+              fontSize: 15,
+              maxWidth: 520,
+              margin: "0 auto 20px",
               lineHeight: 1.9,
-              fontFamily: "'Cairo', sans-serif",
+              fontFamily: "'Cairo',sans-serif",
             }}
           >
-            كل شي تحتاجه للغيمينغ — أجهزة، كونسولات، جوالات وإكسسوارات مختارة
-            بعناية من ماهركو لجمهوره
+            كل شي تحتاجه للغيمينغ — أجهزة، كونسولات، وجوالات مختارة بعناية من
+            ماهركو لجمهوره
           </p>
 
           <div
             style={{
               display: "inline-block",
               padding: "8px 20px",
-              borderRadius: "8px",
+              borderRadius: 8,
               background: "rgba(255,200,0,0.07)",
               border: "1px solid rgba(255,200,0,0.2)",
               color: "rgba(255,200,0,0.75)",
-              fontSize: "13px",
+              fontSize: 13,
               fontWeight: 700,
-              fontFamily: "'Cairo', sans-serif",
+              fontFamily: "'Cairo',sans-serif",
             }}
           >
             ⏳ المتجر لم يفتح بعد — الأسعار ستُعلن قريباً
           </div>
         </div>
 
-        {/* ─── PERKS ROW ─── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14">
+        {/* Perks */}
+        <div className="store-perks-grid">
           {perks.map((perk, i) => (
             <div
               key={i}
+              className="store-perk-card"
               style={{
                 background: "rgba(255,255,255,0.02)",
                 border: "1px solid rgba(0,255,102,0.1)",
-                borderRadius: "16px",
+                borderRadius: 16,
                 padding: "20px 16px",
                 textAlign: "center",
-                transition: "all 0.3s ease",
+                transition: "all 0.3s",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "rgba(0,255,102,0.3)";
@@ -302,10 +356,10 @@ export default function StoreSection() {
               }}
             >
               <div
-                className="perk-icon"
+                className="store-perk-icon"
                 style={{
                   fontSize: "2rem",
-                  marginBottom: "10px",
+                  marginBottom: 10,
                   animationDelay: `${i * 0.4}s`,
                 }}
               >
@@ -315,9 +369,9 @@ export default function StoreSection() {
                 style={{
                   color: "#fff",
                   fontWeight: 800,
-                  fontSize: "14px",
-                  marginBottom: "4px",
-                  fontFamily: "'Cairo', sans-serif",
+                  fontSize: 14,
+                  marginBottom: 4,
+                  fontFamily: "'Cairo',sans-serif",
                 }}
               >
                 {perk.title}
@@ -325,9 +379,9 @@ export default function StoreSection() {
               <div
                 style={{
                   color: "rgba(255,255,255,0.3)",
-                  fontSize: "11px",
+                  fontSize: 11,
                   lineHeight: 1.6,
-                  fontFamily: "'Cairo', sans-serif",
+                  fontFamily: "'Cairo',sans-serif",
                 }}
               >
                 {perk.desc}
@@ -336,29 +390,21 @@ export default function StoreSection() {
           ))}
         </div>
 
-        {/* ─── CATEGORY FILTER ─── */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "10px",
-            flexWrap: "wrap",
-            marginBottom: "36px",
-          }}
-        >
+        {/* Category filter */}
+        <div className="store-cats-row">
           {categories.map((c) => (
             <button
               key={c.id}
-              className="cat-btn"
+              className="store-cat-btn"
               onClick={() => setActiveCategory(c.id)}
               style={{
                 padding: "9px 22px",
                 borderRadius: "100px",
-                fontSize: "13px",
+                fontSize: 13,
                 fontWeight: 700,
                 cursor: "pointer",
-                transition: "all 0.2s ease",
-                fontFamily: "'Cairo', sans-serif",
+                transition: "all 0.2s",
+                fontFamily: "'Cairo',sans-serif",
                 background:
                   activeCategory === c.id
                     ? "rgba(0,255,102,0.12)"
@@ -380,61 +426,61 @@ export default function StoreSection() {
           ))}
         </div>
 
-        {/* ─── PRODUCT GRID ─── */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-20">
+        {/* Products */}
+        <div className="store-products-grid">
           {filtered.map((product, index) => (
             <div
               key={`${activeCategory}-${index}`}
-              className="product-card"
+              className="store-product-card"
               style={{
-                borderRadius: "20px",
+                borderRadius: 20,
                 border:
                   hoveredCard === index
                     ? "1px solid rgba(0,255,102,0.4)"
                     : "1px solid rgba(255,255,255,0.06)",
                 background:
                   hoveredCard === index
-                    ? "linear-gradient(145deg, #0f1f0f, #0a0a0a)"
-                    : "linear-gradient(145deg, #0e0e0e, #080808)",
+                    ? "linear-gradient(145deg,#0f1f0f,#0a0a0a)"
+                    : "linear-gradient(145deg,#0e0e0e,#080808)",
                 transform:
                   hoveredCard === index ? "translateY(-6px)" : "translateY(0)",
                 boxShadow:
                   hoveredCard === index
-                    ? "0 20px 40px rgba(0,0,0,0.5), 0 0 30px rgba(0,255,102,0.08)"
+                    ? "0 20px 40px rgba(0,0,0,0.5),0 0 30px rgba(0,255,102,0.08)"
                     : "none",
-                transition: "all 0.3s ease",
+                transition: "all 0.3s",
                 overflow: "hidden",
-                animationDelay: `${index * 0.06}s`,
+                animationDelay: `${index * 0.08}s`,
               }}
               onMouseEnter={() => setHoveredCard(index)}
               onMouseLeave={() => setHoveredCard(null)}
             >
-              {/* Card image area */}
+              {/* Thumb */}
               <div
                 style={{
                   background: "rgba(255,255,255,0.015)",
-                  padding: "28px",
+                  padding: 28,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   position: "relative",
-                  minHeight: "110px",
+                  minHeight: 110,
                 }}
               >
                 {product.highlight && (
                   <div
                     style={{
                       position: "absolute",
-                      top: "10px",
-                      right: "10px",
+                      top: 10,
+                      right: 10,
                       padding: "3px 10px",
                       borderRadius: "100px",
                       background: "rgba(0,255,102,0.12)",
                       border: "1px solid rgba(0,255,102,0.35)",
                       color: "#00FF66",
-                      fontSize: "10px",
+                      fontSize: 10,
                       fontWeight: 800,
-                      fontFamily: "'Cairo', sans-serif",
+                      fontFamily: "'Cairo',sans-serif",
                     }}
                   >
                     {product.highlight}
@@ -448,26 +494,26 @@ export default function StoreSection() {
                       hoveredCard === index
                         ? "drop-shadow(0 0 12px rgba(0,255,102,0.3))"
                         : "none",
-                    transition: "filter 0.3s ease",
+                    transition: "filter 0.3s",
                   }}
                 >
                   {product.emoji}
                 </span>
               </div>
 
-              {/* Card body */}
-              <div style={{ padding: "16px" }}>
+              {/* Body */}
+              <div style={{ padding: 16 }}>
                 <div
                   style={{
                     display: "inline-block",
                     padding: "3px 10px",
-                    borderRadius: "6px",
+                    borderRadius: 6,
                     background: "rgba(255,200,0,0.07)",
                     border: "1px solid rgba(255,200,0,0.15)",
                     color: "rgba(255,200,0,0.7)",
-                    fontSize: "10px",
+                    fontSize: 10,
                     fontWeight: 800,
-                    marginBottom: "8px",
+                    marginBottom: 8,
                     fontFamily: "monospace",
                     letterSpacing: "0.08em",
                   }}
@@ -479,10 +525,10 @@ export default function StoreSection() {
                   style={{
                     color: "#fff",
                     fontWeight: 800,
-                    fontSize: "14px",
-                    marginBottom: "4px",
+                    fontSize: 14,
+                    marginBottom: 4,
                     lineHeight: 1.4,
-                    fontFamily: "'Cairo', sans-serif",
+                    fontFamily: "'Cairo',sans-serif",
                   }}
                 >
                   {product.nameAr}
@@ -491,8 +537,8 @@ export default function StoreSection() {
                 <p
                   style={{
                     color: "rgba(255,255,255,0.22)",
-                    fontSize: "11px",
-                    marginBottom: "14px",
+                    fontSize: 11,
+                    marginBottom: 14,
                     fontFamily: "monospace",
                     direction: "ltr",
                     textAlign: "right",
@@ -501,14 +547,13 @@ export default function StoreSection() {
                   {product.specs}
                 </p>
 
-                {/* Price placeholder row */}
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "10px 14px",
-                    borderRadius: "10px",
+                    borderRadius: 10,
                     background: "rgba(255,255,255,0.02)",
                     border: "1px solid rgba(255,255,255,0.04)",
                   }}
@@ -516,8 +561,8 @@ export default function StoreSection() {
                   <span
                     style={{
                       color: "rgba(255,255,255,0.2)",
-                      fontSize: "12px",
-                      fontFamily: "'Cairo', sans-serif",
+                      fontSize: 12,
+                      fontFamily: "'Cairo',sans-serif",
                     }}
                   >
                     السعر
@@ -525,7 +570,7 @@ export default function StoreSection() {
                   <span
                     style={{
                       color: "rgba(255,255,255,0.1)",
-                      fontSize: "16px",
+                      fontSize: 16,
                       fontWeight: 900,
                       fontFamily: "monospace",
                       letterSpacing: "0.3em",
@@ -539,31 +584,33 @@ export default function StoreSection() {
           ))}
         </div>
 
-        {/* ─── VISION SECTION ─── */}
+        {/* Vision box */}
         <div
           style={{
-            borderRadius: "24px",
-            padding: "2px",
+            borderRadius: 24,
+            padding: 2,
             background:
-              "linear-gradient(135deg, rgba(0,255,102,0.2), transparent, rgba(0,255,102,0.1))",
+              "linear-gradient(135deg,rgba(0,255,102,0.2),transparent,rgba(0,255,102,0.1))",
           }}
         >
           <div
+            className="store-vision-inner"
             style={{
-              borderRadius: "22px",
+              borderRadius: 22,
               padding: "48px 40px",
-              background: "linear-gradient(135deg, #0a1a0a, #080808, #0a0f0a)",
+              background: "linear-gradient(135deg,#0a1a0a,#080808,#0a0f0a)",
               textAlign: "center",
             }}
           >
-            <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🏆</div>
+            <div style={{ fontSize: "3rem", marginBottom: 16 }}>🏆</div>
             <h3
+              className="store-vision-title"
               style={{
                 color: "#fff",
                 fontWeight: 900,
-                fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
-                marginBottom: "12px",
-                fontFamily: "'Cairo', sans-serif",
+                fontSize: "clamp(1.5rem,3vw,2.2rem)",
+                marginBottom: 12,
+                fontFamily: "'Cairo',sans-serif",
               }}
             >
               الرؤية الكاملة لمتجر ماهركو
@@ -571,27 +618,18 @@ export default function StoreSection() {
             <p
               style={{
                 color: "rgba(255,255,255,0.4)",
-                fontSize: "15px",
-                maxWidth: "600px",
+                fontSize: 15,
+                maxWidth: 600,
                 margin: "0 auto 32px",
                 lineHeight: 1.9,
-                fontFamily: "'Cairo', sans-serif",
+                fontFamily: "'Cairo',sans-serif",
               }}
             >
-              تخيل متجر رسمي باسم ماهركو يبيع كل ما يحتاجه الغيمر العربي —
-              منتجات أصلية، توصيل سريع، وأسعار حصرية لجمهوره. المتجر سيكون
-              امتداداً لشخصيتك وعلامتك التجارية على الإنترنت.
+              متجر رسمي باسم ماهركو يبيع كل ما يحتاجه الغيمر العربي — منتجات
+              أصلية، توصيل سريع، وأسعار حصرية لجمهوره.
             </p>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: "16px",
-                maxWidth: "700px",
-                margin: "0 auto",
-              }}
-            >
+            <div className="store-stats-grid">
               {[
                 { num: "10+", label: "فئات منتجات" },
                 { num: "0%", label: "مخاطرة عليك" },
@@ -601,8 +639,8 @@ export default function StoreSection() {
                 <div
                   key={i}
                   style={{
-                    padding: "20px",
-                    borderRadius: "14px",
+                    padding: 20,
+                    borderRadius: 14,
                     background: "rgba(0,255,102,0.04)",
                     border: "1px solid rgba(0,255,102,0.12)",
                   }}
@@ -614,7 +652,7 @@ export default function StoreSection() {
                       color: "#00FF66",
                       fontFamily: "monospace",
                       textShadow: "0 0 20px rgba(0,255,102,0.4)",
-                      marginBottom: "4px",
+                      marginBottom: 4,
                     }}
                   >
                     {stat.num}
@@ -622,8 +660,8 @@ export default function StoreSection() {
                   <div
                     style={{
                       color: "rgba(255,255,255,0.4)",
-                      fontSize: "12px",
-                      fontFamily: "'Cairo', sans-serif",
+                      fontSize: 12,
+                      fontFamily: "'Cairo',sans-serif",
                     }}
                   >
                     {stat.label}
