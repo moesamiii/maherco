@@ -24,6 +24,7 @@ const COLORS = [
 
 export default function TeamWheel() {
   const canvasRef = useRef(null);
+  const rotationRef = useRef(0);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState(null);
@@ -40,7 +41,10 @@ export default function TeamWheel() {
   const [wheelSize, setWheelSize] = useState(460);
 
   const segments = teamMembers.length;
-  const angle = segments > 0 ? (2 * Math.PI) / segments : 0;
+  const angleRef = useRef((2 * Math.PI) / segments);
+  angleRef.current = segments > 0 ? (2 * Math.PI) / segments : 0;
+  const teamMembersRef = useRef(teamMembers);
+  teamMembersRef.current = teamMembers;
 
   useEffect(() => {
     const update = () => {
@@ -55,128 +59,140 @@ export default function TeamWheel() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const drawWheel = useCallback(
-    (rot, sz) => {
-      const size = sz || wheelSize;
-      const canvas = canvasRef.current;
-      if (!canvas || segments === 0) return;
-      const ctx = canvas.getContext("2d");
-      const radius = size / 2;
-      ctx.clearRect(0, 0, size, size);
+  // Core draw function — always reads size from canvas.width so it's never stale
+  const drawWheel = useCallback((rot) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const segs = teamMembersRef.current.length;
+    if (segs === 0) return;
+
+    const size = canvas.width; // ← always accurate
+    const ctx = canvas.getContext("2d");
+    const radius = size / 2;
+    const segAngle = (2 * Math.PI) / segs;
+
+    ctx.clearRect(0, 0, size, size);
+
+    // Outer ring hint
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius - 1, 0, 2 * Math.PI);
+    ctx.lineWidth = 18;
+    ctx.strokeStyle = "rgba(0,255,102,0.08)";
+    ctx.stroke();
+
+    // Segments
+    for (let i = 0; i < segs; i++) {
+      const start = i * segAngle + rot;
+      const end = start + segAngle;
 
       ctx.beginPath();
-      ctx.arc(radius, radius, radius - 1, 0, 2 * Math.PI);
-      ctx.lineWidth = 18;
-      ctx.strokeStyle = "rgba(0,255,102,0.08)";
+      ctx.moveTo(radius, radius);
+      ctx.arc(radius, radius, radius - 16, start, end);
+      ctx.fillStyle = COLORS[i % COLORS.length];
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(0,0,0,0.8)";
       ctx.stroke();
 
-      for (let i = 0; i < segments; i++) {
-        const start = i * angle + rot;
-        const end = start + angle;
+      // Shimmer on even segments
+      if (i % 2 === 0) {
+        ctx.save();
         ctx.beginPath();
         ctx.moveTo(radius, radius);
         ctx.arc(radius, radius, radius - 16, start, end);
-        ctx.fillStyle = COLORS[i % COLORS.length];
+        ctx.clip();
+        const mid = start + segAngle / 2;
+        const shimmer = ctx.createLinearGradient(
+          radius + Math.cos(mid) * 80,
+          radius + Math.sin(mid) * 80,
+          radius + Math.cos(mid) * (radius - 20),
+          radius + Math.sin(mid) * (radius - 20),
+        );
+        shimmer.addColorStop(0, "rgba(255,255,255,0.0)");
+        shimmer.addColorStop(0.5, "rgba(255,255,255,0.07)");
+        shimmer.addColorStop(1, "rgba(255,255,255,0.0)");
+        ctx.fillStyle = shimmer;
         ctx.fill();
-        ctx.lineWidth = 1.5;
-        ctx.strokeStyle = "rgba(0,0,0,0.8)";
-        ctx.stroke();
-
-        if (i % 2 === 0) {
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(radius, radius);
-          ctx.arc(radius, radius, radius - 16, start, end);
-          ctx.clip();
-          const shimmer = ctx.createLinearGradient(
-            radius + Math.cos(start + angle / 2) * 80,
-            radius + Math.sin(start + angle / 2) * 80,
-            radius + Math.cos(start + angle / 2) * (radius - 20),
-            radius + Math.sin(start + angle / 2) * (radius - 20),
-          );
-          shimmer.addColorStop(0, "rgba(255,255,255,0.0)");
-          shimmer.addColorStop(0.5, "rgba(255,255,255,0.07)");
-          shimmer.addColorStop(1, "rgba(255,255,255,0.0)");
-          ctx.fillStyle = shimmer;
-          ctx.fill();
-          ctx.restore();
-        }
-
-        ctx.save();
-        ctx.translate(radius, radius);
-        ctx.rotate(start + angle / 2);
-        ctx.textAlign = "right";
-        const isGreen = i % 2 === 0;
-        ctx.fillStyle = isGreen ? "#000000" : "#00FF66";
-        const fontSize = size < 320 ? 10 : size < 380 ? 12 : 15;
-        ctx.font = `bold ${fontSize}px 'Segoe UI', sans-serif`;
-        ctx.shadowColor = isGreen ? "transparent" : "rgba(0,255,102,0.5)";
-        ctx.shadowBlur = 6;
-        const maxLen = size < 320 ? 8 : size < 380 ? 10 : 14;
-        const label =
-          teamMembers[i].length > maxLen
-            ? teamMembers[i].slice(0, maxLen - 1) + "…"
-            : teamMembers[i];
-        ctx.fillText(label, radius - 20, 5);
         ctx.restore();
       }
 
-      ctx.beginPath();
-      ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#00FF66";
-      ctx.shadowColor = "#00FF66";
-      ctx.shadowBlur = 20;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      // Label
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate(start + segAngle / 2);
+      ctx.textAlign = "right";
+      const isGreen = i % 2 === 0;
+      ctx.fillStyle = isGreen ? "#000000" : "#00FF66";
+      const fontSize = size < 320 ? 10 : size < 380 ? 12 : 15;
+      ctx.font = `bold ${fontSize}px 'Segoe UI', sans-serif`;
+      ctx.shadowColor = isGreen ? "transparent" : "rgba(0,255,102,0.5)";
+      ctx.shadowBlur = 6;
+      const maxLen = size < 320 ? 8 : size < 380 ? 10 : 14;
+      const raw = teamMembersRef.current[i] || "";
+      const label = raw.length > maxLen ? raw.slice(0, maxLen - 1) + "…" : raw;
+      ctx.fillText(label, radius - 20, 5);
+      ctx.restore();
+    }
 
-      const hubR = size < 320 ? 28 : size < 380 ? 36 : 48;
+    // Outer glow ring
+    ctx.beginPath();
+    ctx.arc(radius, radius, radius - 10, 0, 2 * Math.PI);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#00FF66";
+    ctx.shadowColor = "#00FF66";
+    ctx.shadowBlur = 20;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Hub
+    const hubR = size < 320 ? 28 : size < 380 ? 36 : 48;
+    ctx.beginPath();
+    ctx.arc(radius, radius, hubR, 0, 2 * Math.PI);
+    const hubGrad = ctx.createRadialGradient(
+      radius - 8,
+      radius - 8,
+      0,
+      radius,
+      radius,
+      hubR,
+    );
+    hubGrad.addColorStop(0, "#1e1e1e");
+    hubGrad.addColorStop(1, "#050505");
+    ctx.fillStyle = hubGrad;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#00FF66";
+    ctx.shadowColor = "#00FF66";
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Hub dots
+    for (let d = 0; d < 4; d++) {
+      const bAngle = (d * Math.PI) / 2 + rot * 0.3;
       ctx.beginPath();
-      ctx.arc(radius, radius, hubR, 0, 2 * Math.PI);
-      const hubGrad = ctx.createRadialGradient(
-        radius - 8,
-        radius - 8,
+      ctx.arc(
+        radius + Math.cos(bAngle) * (hubR * 0.46),
+        radius + Math.sin(bAngle) * (hubR * 0.46),
+        3,
         0,
-        radius,
-        radius,
-        hubR,
+        2 * Math.PI,
       );
-      hubGrad.addColorStop(0, "#1e1e1e");
-      hubGrad.addColorStop(1, "#050505");
-      ctx.fillStyle = hubGrad;
+      ctx.fillStyle = "#00FF66";
       ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#00FF66";
-      ctx.shadowColor = "#00FF66";
-      ctx.shadowBlur = 14;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+    }
 
-      for (let d = 0; d < 4; d++) {
-        const bAngle = (d * Math.PI) / 2 + rot * 0.3;
-        ctx.beginPath();
-        ctx.arc(
-          radius + Math.cos(bAngle) * (hubR * 0.46),
-          radius + Math.sin(bAngle) * (hubR * 0.46),
-          3,
-          0,
-          2 * Math.PI,
-        );
-        ctx.fillStyle = "#00FF66";
-        ctx.fill();
-      }
+    // Center icon
+    ctx.font = `${size < 320 ? 13 : 18}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🎯", radius, radius);
+  }, []); // no deps — reads everything from refs
 
-      ctx.font = `${size < 320 ? 13 : 18}px Arial`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("🎯", radius, radius);
-    },
-    [angle, segments, teamMembers, wheelSize],
-  );
-
+  // Redraw whenever members, rotation, or wheelSize changes
   useEffect(() => {
-    drawWheel(rotation, wheelSize);
-  }, [rotation, drawWheel, wheelSize]);
+    drawWheel(rotationRef.current);
+  }, [teamMembers, wheelSize, drawWheel]);
 
   const spawnConfetti = () => {
     const pieces = Array.from({ length: 30 }, (_, i) => ({
@@ -200,27 +216,31 @@ export default function TeamWheel() {
     setShowPopup(false);
 
     const spinDegrees = Math.random() * 2000 + 3000;
-    const finalRotation = rotation + (spinDegrees * Math.PI) / 180;
+    const startRot = rotationRef.current;
+    const finalRotation = startRot + (spinDegrees * Math.PI) / 180;
     const duration = 4500;
     const startTime = performance.now();
-    const startRotation = rotation;
 
     const animate = (time) => {
       const progress = Math.min((time - startTime) / duration, 1);
       const easeOut = 1 - Math.pow(1 - progress, 4);
-      const currentRotation =
-        startRotation + (finalRotation - startRotation) * easeOut;
-      setRotation(currentRotation);
+      const currentRotation = startRot + (finalRotation - startRot) * easeOut;
+      rotationRef.current = currentRotation;
+      setRotation(currentRotation); // triggers canvas size sync
+      drawWheel(currentRotation);
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       } else {
         setIsSpinning(false);
+        const segs = teamMembersRef.current.length;
+        const segAngle = (2 * Math.PI) / segs;
         const topAngle = -Math.PI / 2;
         const relativeAngle =
           (((topAngle - currentRotation) % (2 * Math.PI)) + 2 * Math.PI) %
           (2 * Math.PI);
-        const idx = Math.floor(relativeAngle / angle) % segments;
-        const pickedName = teamMembers[idx];
+        const idx = Math.floor(relativeAngle / segAngle) % segs;
+        const pickedName = teamMembersRef.current[idx];
         setWinner(pickedName);
         setShowPopup(true);
         setTotalSpins((s) => s + 1);
@@ -290,11 +310,8 @@ export default function TeamWheel() {
         .restore-btn:hover { background: rgba(0,255,102,0.15) !important; color: #00FF66 !important; }
         .accordion-btn:hover { background: rgba(0,255,102,0.08) !important; }
 
-        @media (max-width: 640px) {
-          .delete-btn { opacity: 0.7 !important; }
-        }
+        @media (max-width: 640px) { .delete-btn { opacity: 0.7 !important; } }
 
-        /* Layout switching */
         .desktop-layout { display: flex; }
         .mobile-layout { display: none; }
         @media (max-width: 900px) {
@@ -303,7 +320,6 @@ export default function TeamWheel() {
         }
       `}</style>
 
-      {/* Confetti */}
       {confetti.map((c) => (
         <div
           key={c.id}
@@ -322,7 +338,6 @@ export default function TeamWheel() {
         />
       ))}
 
-      {/* POPUP */}
       {showPopup && winner && (
         <div
           style={{
@@ -345,7 +360,7 @@ export default function TeamWheel() {
               background: "linear-gradient(145deg, #0f0f0f, #1a1a1a)",
               border: "1px solid rgba(0,255,102,0.4)",
               borderRadius: 24,
-              padding: "clamp(24px, 6vw, 40px) clamp(18px, 5vw, 48px)",
+              padding: "clamp(24px,6vw,40px) clamp(18px,5vw,48px)",
               maxWidth: 420,
               width: "100%",
               textAlign: "center",
@@ -378,7 +393,7 @@ export default function TeamWheel() {
             <h2
               style={{
                 color: "#00FF66",
-                fontSize: "clamp(24px, 7vw, 38px)",
+                fontSize: "clamp(24px,7vw,38px)",
                 fontWeight: 900,
                 margin: "8px 0 4px",
                 textShadow: "0 0 30px rgba(0,255,102,0.7)",
@@ -416,12 +431,6 @@ export default function TeamWheel() {
                   boxShadow: "0 0 20px rgba(0,255,102,0.4)",
                   transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.04)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
               >
                 ✅ ابقِه
               </button>
@@ -439,14 +448,6 @@ export default function TeamWheel() {
                   cursor: "pointer",
                   transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255,68,68,0.1)";
-                  e.currentTarget.style.transform = "scale(1.04)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
               >
                 🗑️ أزِله
               </button>
@@ -459,7 +460,7 @@ export default function TeamWheel() {
         style={{
           position: "relative",
           width: "100%",
-          padding: "clamp(40px, 7vw, 96px) 0 clamp(28px, 5vw, 64px)",
+          padding: "clamp(40px,7vw,96px) 0 clamp(28px,5vw,64px)",
           overflow: "hidden",
           background: "#000",
           borderTop: "1px solid rgba(0,255,102,0.2)",
@@ -492,7 +493,7 @@ export default function TeamWheel() {
             position: "relative",
             zIndex: 10,
             textAlign: "center",
-            marginBottom: "clamp(20px, 4vw, 48px)",
+            marginBottom: "clamp(20px,4vw,48px)",
             direction: "rtl",
             padding: "0 16px",
           }}
@@ -531,7 +532,7 @@ export default function TeamWheel() {
           </div>
           <h2
             style={{
-              fontSize: "clamp(28px, 6vw, 52px)",
+              fontSize: "clamp(28px,6vw,52px)",
               fontWeight: 900,
               color: "#fff",
               letterSpacing: "-0.02em",
@@ -553,7 +554,7 @@ export default function TeamWheel() {
             style={{
               display: "flex",
               justifyContent: "center",
-              gap: "clamp(16px, 5vw, 32px)",
+              gap: "clamp(16px,5vw,32px)",
               marginTop: 20,
             }}
           >
@@ -565,7 +566,7 @@ export default function TeamWheel() {
               <div key={s.label} style={{ textAlign: "center" }}>
                 <div
                   style={{
-                    fontSize: "clamp(18px, 4vw, 26px)",
+                    fontSize: "clamp(18px,4vw,26px)",
                     fontWeight: 900,
                     color: "#00FF66",
                     textShadow: "0 0 15px rgba(0,255,102,0.4)",
@@ -575,7 +576,7 @@ export default function TeamWheel() {
                 </div>
                 <div
                   style={{
-                    fontSize: "clamp(9px, 2vw, 10px)",
+                    fontSize: "clamp(9px,2vw,10px)",
                     color: "#555",
                     letterSpacing: "0.1em",
                   }}
@@ -587,7 +588,7 @@ export default function TeamWheel() {
           </div>
         </div>
 
-        {/* ─── DESKTOP 3-col ─── */}
+        {/* Desktop 3-col */}
         <div
           className="desktop-layout"
           style={{
@@ -600,7 +601,6 @@ export default function TeamWheel() {
             padding: "0 32px",
           }}
         >
-          {/* Left */}
           <div style={{ minWidth: 220, maxWidth: 240 }}>
             <DesktopMembersPanel
               teamMembers={teamMembers}
@@ -622,7 +622,6 @@ export default function TeamWheel() {
             )}
           </div>
 
-          {/* Wheel */}
           <WheelBlock
             canvasRef={canvasRef}
             wheelSize={wheelSize}
@@ -633,16 +632,14 @@ export default function TeamWheel() {
             spin={spin}
           />
 
-          {/* Right */}
           <div style={{ minWidth: 200, maxWidth: 220 }}>
             <HistoryPanel spinHistory={spinHistory} />
             <HowItWorksPanel />
           </div>
         </div>
 
-        {/* ─── MOBILE stacked ─── */}
+        {/* Mobile stacked */}
         <div className="mobile-layout">
-          {/* Wheel */}
           <WheelBlock
             canvasRef={canvasRef}
             wheelSize={wheelSize}
@@ -653,7 +650,6 @@ export default function TeamWheel() {
             spin={spin}
           />
 
-          {/* Accordion panels */}
           <div
             style={{
               padding: "20px 14px 0",
@@ -662,7 +658,6 @@ export default function TeamWheel() {
               gap: 10,
             }}
           >
-            {/* Members accordion */}
             <Accordion
               label={`⚙️ إدارة الأعضاء (${teamMembers.length})`}
               open={showManagePanel}
@@ -716,8 +711,6 @@ export default function TeamWheel() {
                   ⚠️ {addError}
                 </p>
               )}
-
-              {/* 2-col grid */}
               <div
                 style={{
                   display: "grid",
@@ -770,7 +763,6 @@ export default function TeamWheel() {
                         fontSize: 14,
                         padding: "2px",
                         flexShrink: 0,
-                        transition: "opacity 0.2s",
                         lineHeight: 1,
                       }}
                     >
@@ -779,7 +771,6 @@ export default function TeamWheel() {
                   </div>
                 ))}
               </div>
-
               {removedMembers.length > 0 && (
                 <div
                   style={{
@@ -814,7 +805,6 @@ export default function TeamWheel() {
                           padding: "6px 12px",
                           cursor: "pointer",
                           fontFamily: "'Segoe UI', sans-serif",
-                          transition: "all 0.2s",
                         }}
                       >
                         {name} ↩
@@ -825,7 +815,6 @@ export default function TeamWheel() {
               )}
             </Accordion>
 
-            {/* History accordion */}
             <Accordion
               label="🕐 سجل الأدوار"
               open={showHistoryPanel}
@@ -908,7 +897,6 @@ export default function TeamWheel() {
   );
 }
 
-/* ── Shared Wheel block ── */
 function WheelBlock({
   canvasRef,
   wheelSize,
@@ -971,6 +959,7 @@ function WheelBlock({
               boxShadow: "inset 0 2px 4px rgba(255,255,255,0.05)",
             }}
           >
+            {/* canvas width/height must match wheelSize so drawWheel reads correct size */}
             <canvas
               ref={canvasRef}
               width={wheelSize}
@@ -1012,7 +1001,7 @@ function WheelBlock({
               style={{
                 color: "#00FF66",
                 fontWeight: 900,
-                fontSize: "clamp(15px, 4vw, 20px)",
+                fontSize: "clamp(15px,4vw,20px)",
                 textShadow: "0 0 20px #00FF6680",
                 margin: 0,
                 direction: "rtl",
@@ -1034,11 +1023,11 @@ function WheelBlock({
           position: "relative",
           overflow: "hidden",
           fontWeight: 900,
-          fontSize: "clamp(14px, 4vw, 18px)",
+          fontSize: "clamp(14px,4vw,18px)",
           letterSpacing: "0.08em",
-          padding: "clamp(12px, 3vw, 18px) clamp(28px, 8vw, 64px)",
+          padding: "clamp(12px,3vw,18px) clamp(28px,8vw,64px)",
           borderRadius: 18,
-          width: "clamp(200px, 78vw, 320px)",
+          width: "clamp(200px,78vw,320px)",
           background:
             isSpinning || segments === 0
               ? "linear-gradient(135deg, #1a1a1a, #111)"
@@ -1110,7 +1099,6 @@ function WheelBlock({
   );
 }
 
-/* ── Accordion (mobile) ── */
 function Accordion({ label, open, onToggle, children }) {
   return (
     <div
@@ -1167,7 +1155,6 @@ function Accordion({ label, open, onToggle, children }) {
   );
 }
 
-/* ── Desktop Members Panel ── */
 function DesktopMembersPanel({
   teamMembers,
   winner,
